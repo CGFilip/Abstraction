@@ -35,19 +35,43 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (CurrentRotationTime < TimeToRotate)
+	if (TriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
 	{
-		if (TriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
+		APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+		if (PlayerPawn)
 		{
-			APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
-			if (PlayerPawn && TriggerBox->IsOverlappingActor(PlayerPawn))
+			if (TriggerBox->IsOverlappingActor(PlayerPawn))
 			{
 				CurrentRotationTime += DeltaTime;
-				const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
-				const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
-				const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
-				GetOwner()->SetActorRotation(CurrentRotation);
+				if (CurrentRotationTime > TimeToRotate)
+				{
+					CurrentRotationTime = TimeToRotate;
+				}
+				//else
+				{
+					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
+					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
+					GetOwner()->SetActorRotation(CurrentRotation);
+				}
 			}
+			else
+			{
+				CurrentRotationTime -= DeltaTime;
+				if (CurrentRotationTime < 0)
+				{
+					CurrentRotationTime = 0;
+				}
+				//else
+				{
+					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
+					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
+					GetOwner()->SetActorRotation(CurrentRotation);
+				}
+			}
+			GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Name: %f"), CurrentRotationTime));
+
 		}
 	}
 }
