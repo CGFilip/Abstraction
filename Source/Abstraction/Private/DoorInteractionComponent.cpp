@@ -24,10 +24,10 @@ void UDoorInteractionComponent::BeginPlay()
 	Super::BeginPlay();
 
 	StartRotation = GetOwner()->GetActorRotation();
-	FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
+	//FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
 
 	CurrentRotationTime = 0;
-	OwnerStartingForwardVector = GetOwner()->GetActorForwardVector();
+	OwnerStartingForwardVector = GetOwner()->GetActorRightVector(); // Should be Forward, but the mesh is turned
 }
 
 
@@ -35,7 +35,6 @@ void UDoorInteractionComponent::BeginPlay()
 void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	//GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Name: %f"), CurrentRotationTime));
 
 	if (TriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
 	{
@@ -44,6 +43,16 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		{
 			if (TriggerBox->IsOverlappingActor(PlayerPawn))
 			{
+				// If we are going from closing the door to opening the door
+				// we need to set a new rotation
+				if (DidDoorClose == true)
+				{
+					DidDoorClose = false;
+					IsRotationSet = false;
+				}
+
+				DidDoorOpen = true;
+				
 				CurrentRotationTime += DeltaTime;
 				if (CurrentRotationTime > TimeToRotate)
 				{
@@ -51,30 +60,45 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 				}
 				else
 				{
-					FVector ActorBLocation = PlayerPawn->GetActorLocation();
-					FVector ActorALocation = GetOwner()->GetActorLocation();
-
-					FVector Difference = ActorALocation - ActorBLocation;
-					Difference.Normalize();
-
-					float DotProduct = FVector::DotProduct(Difference, PlayerPawn->GetActorForwardVector());
-					GEngine->AddOnScreenDebugMessage(2, 1, FColor::Green, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
-					FRotator Rotation = FinalRotation;
-					if (DotProduct < 0)
+					if (IsRotationSet == false)
 					{
-						Rotation = FinalRotation.GetInverse();
-					}
+						IsRotationSet = true;
+						FVector ActorBLocation = PlayerPawn->GetActorLocation();
+						FVector ActorALocation = GetOwner()->GetActorLocation();
 
+						FVector Difference = ActorBLocation - ActorALocation;
+						Difference.Normalize();
+
+						float DotProduct = FVector::DotProduct(Difference, OwnerStartingForwardVector);
+						if (DotProduct < 0)
+						{
+							FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation.GetInverse();
+						}
+						else
+						{
+							FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
+						}
+
+					}
 
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
-					const FRotator CurrentRotation = FMath::Lerp(StartRotation, Rotation, RotationAlpha);
+					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
 					GetOwner()->SetActorRotation(CurrentRotation);
-					//GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Open Front: %f"), CurrentRotationTime));
 				}
 			}
 			else
 			{
+				// If we are going from opening the door to closing the door
+				// we need to set a new rotation
+				if (DidDoorOpen == true)
+				{
+					DidDoorOpen = false;
+					IsRotationSet = false;
+				}
+
+				DidDoorClose = true;
+
 				CurrentRotationTime -= DeltaTime;
 				if (CurrentRotationTime < 0)
 				{
@@ -82,29 +106,29 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 				}
 				else
 				{
-
-					FVector ActorBLocation = PlayerPawn->GetActorLocation();
-					FVector ActorALocation = GetOwner()->GetActorLocation();
-
-					FVector Difference = ActorALocation - ActorBLocation;
-					Difference.Normalize();
-
-					float DotProduct = FVector::DotProduct(Difference, PlayerPawn->GetActorForwardVector());
-					GEngine->AddOnScreenDebugMessage(2, 1, FColor::Green, FString::Printf(TEXT("DotProduct: %f"), DotProduct));
-					FRotator Rotation = FinalRotation;
-					if (DotProduct < 0)
+					if (IsRotationSet == false)
 					{
-						Rotation = FinalRotation.GetInverse();
+						IsRotationSet = true;
+						FVector PlayerLocation = PlayerPawn->GetActorLocation();
+						FVector DoorLocation = GetOwner()->GetActorLocation();
+
+						FVector Difference = PlayerLocation - DoorLocation;
+						Difference.Normalize();
+
+						float DotProduct = FVector::DotProduct(Difference, OwnerStartingForwardVector);
+						FRotator Rotation = FinalRotation;
+						if (DotProduct < 0)
+						{
+							Rotation = FinalRotation.GetInverse();
+						}
 					}
 
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
-					const FRotator CurrentRotation = FMath::Lerp(StartRotation, Rotation, RotationAlpha);
+					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
 					GetOwner()->SetActorRotation(CurrentRotation);
-					//GEngine->AddOnScreenDebugMessage(2, 1, FColor::Green, FString::Printf(TEXT("Close Front: %f"), CurrentRotationTime));
 				}
 			}
-
 		}
 	}
 }

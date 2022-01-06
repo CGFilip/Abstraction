@@ -43,8 +43,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FRuntimeFloatCurve OpenCurve;
 
-	bool DidOpenFromFront = false;
-	bool DidOpenFromBack = false;
+	bool DidDoorOpen = false;
+	bool DidDoorClose = false;
+	bool IsRotationSet = false;
 
 	FVector OwnerStartingForwardVector;
 };
