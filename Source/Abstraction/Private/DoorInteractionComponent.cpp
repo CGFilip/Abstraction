@@ -63,22 +63,21 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					if (IsRotationSet == false)
 					{
 						IsRotationSet = true;
-						FVector ActorBLocation = PlayerPawn->GetActorLocation();
-						FVector ActorALocation = GetOwner()->GetActorLocation();
+						FVector PlayerLocation = PlayerPawn->GetActorLocation();
+						FVector DoorLocation = GetOwner()->GetActorLocation();
 
-						FVector Difference = ActorBLocation - ActorALocation;
+						FVector Difference = PlayerLocation - DoorLocation;
 						Difference.Normalize();
 
 						float DotProduct = FVector::DotProduct(Difference, OwnerStartingForwardVector);
 						if (DotProduct < 0)
-						{
+						{	// Player is in front
 							FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation.GetInverse();
 						}
 						else
-						{
+						{	// player is in the back
 							FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
 						}
-
 					}
 
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
@@ -89,14 +88,6 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			}
 			else
 			{
-				// If we are going from opening the door to closing the door
-				// we need to set a new rotation
-				if (DidDoorOpen == true)
-				{
-					DidDoorOpen = false;
-					IsRotationSet = false;
-				}
-
 				DidDoorClose = true;
 
 				CurrentRotationTime -= DeltaTime;
@@ -106,23 +97,6 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 				}
 				else
 				{
-					if (IsRotationSet == false)
-					{
-						IsRotationSet = true;
-						FVector PlayerLocation = PlayerPawn->GetActorLocation();
-						FVector DoorLocation = GetOwner()->GetActorLocation();
-
-						FVector Difference = PlayerLocation - DoorLocation;
-						Difference.Normalize();
-
-						float DotProduct = FVector::DotProduct(Difference, OwnerStartingForwardVector);
-						FRotator Rotation = FinalRotation;
-						if (DotProduct < 0)
-						{
-							Rotation = FinalRotation.GetInverse();
-						}
-					}
-
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
 					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
