@@ -34,43 +34,91 @@ void UDoorInteractionComponent::BeginPlay()
 void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Name: %f"), CurrentRotationTime));
 
-	if (TriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
+	if (FrontTriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
 	{
 		APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 		if (PlayerPawn)
 		{
-			if (TriggerBox->IsOverlappingActor(PlayerPawn))
+			if (FrontTriggerBox->IsOverlappingActor(PlayerPawn))
 			{
+				DidOpenFromFront = true;
+				DidOpenFromBack = false;
 				CurrentRotationTime += DeltaTime;
 				if (CurrentRotationTime > TimeToRotate)
 				{
 					CurrentRotationTime = TimeToRotate;
 				}
-				//else
+				else
 				{
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
 					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
 					GetOwner()->SetActorRotation(CurrentRotation);
+					GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Open Front: %f"), CurrentRotationTime));
 				}
 			}
-			else
+			else if(DidOpenFromFront)
 			{
 				CurrentRotationTime -= DeltaTime;
 				if (CurrentRotationTime < 0)
 				{
 					CurrentRotationTime = 0;
 				}
-				//else
+				else
 				{
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
 					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
 					GetOwner()->SetActorRotation(CurrentRotation);
+					GEngine->AddOnScreenDebugMessage(2, 1, FColor::Green, FString::Printf(TEXT("Close Front: %f"), CurrentRotationTime));
 				}
 			}
-			GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Name: %f"), CurrentRotationTime));
+
+		}
+	}
+
+
+	if (BackTriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
+	{
+		APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+		if (PlayerPawn)
+		{
+			if (BackTriggerBox->IsOverlappingActor(PlayerPawn))
+			{
+				DidOpenFromBack = true;
+				DidOpenFromFront = false;
+				CurrentRotationTime += DeltaTime;
+				if (CurrentRotationTime > TimeToRotate)
+				{
+					CurrentRotationTime = TimeToRotate;
+				}
+				else
+				{
+					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
+					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation.GetInverse(), RotationAlpha);
+					GetOwner()->SetActorRotation(CurrentRotation);
+					GEngine->AddOnScreenDebugMessage(3, 1, FColor::Green, FString::Printf(TEXT("Open Back: %f"), CurrentRotationTime));
+				}
+			}
+			else if(DidOpenFromBack)
+			{
+				CurrentRotationTime -= DeltaTime;
+				if (CurrentRotationTime < 0)
+				{
+					CurrentRotationTime = 0;
+				}
+				else
+				{
+					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
+					const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation.GetInverse(), RotationAlpha);
+					GetOwner()->SetActorRotation(CurrentRotation);
+					GEngine->AddOnScreenDebugMessage(4, 1, FColor::Green, FString::Printf(TEXT("Close Back: %f"), CurrentRotationTime));
+				}
+			}
 
 		}
 	}

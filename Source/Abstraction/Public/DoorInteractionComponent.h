@@ -38,8 +38,14 @@ protected:
 	float CurrentRotationTime = 0.0f;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerBox* TriggerBox;
+	ATriggerBox* FrontTriggerBox;
+
+	UPROPERTY(EditAnywhere)
+	ATriggerBox* BackTriggerBox;
 
 	UPROPERTY(EditAnywhere)
 	FRuntimeFloatCurve OpenCurve;
+
+	bool DidOpenFromFront = false;
+	bool DidOpenFromBack = false;
 };
