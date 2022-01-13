@@ -34,7 +34,7 @@ void UDoorInteractionComponent::BeginPlay()
 void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Name: %f"), CurrentRotationTime));
+	GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("CurrentRotationTime: %f"), CurrentRotationTime));
 
 	if (FrontTriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
 	{
