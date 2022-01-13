@@ -47,7 +47,7 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 				{
 					CurrentRotationTime = TimeToRotate;
 				}
-				//else
+				else
 				{
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
@@ -62,7 +62,7 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 				{
 					CurrentRotationTime = 0;
 				}
-				//else
+				else
 				{
 					const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 					const float RotationAlpha = OpenCurve.GetRichCurveConst()->Eval(TimeRatio);
@@ -70,7 +70,7 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					GetOwner()->SetActorRotation(CurrentRotation);
 				}
 			}
-			GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("Name: %f"), CurrentRotationTime));
+			GEngine->AddOnScreenDebugMessage(1, 1, FColor::Green, FString::Printf(TEXT("CurrentRotationTime: %f"), CurrentRotationTime));
 
 		}
 	}
