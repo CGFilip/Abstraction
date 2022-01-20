@@ -13,10 +13,11 @@ class IConsoleVariable;
 UENUM()
 enum class EDoorState
 {
-	DS_Closed = 0	UMETA(DisplayName = "Closed"),
-	DS_Opening = 1	UMETA(DisplayName = "Openeing"),
-	DS_Open = 2		UMETA(DisplayName = "Open"),
-	DS_Locked = 3	UMETA(DisplayName = "Locked")
+	DS_Closing = 0	UMETA(DisplayName = "Closing"),
+	DS_Closed = 1	UMETA(DisplayName = "Closed"),
+	DS_Opening = 2	UMETA(DisplayName = "Openeing"),
+	DS_Open = 3		UMETA(DisplayName = "Open"),
+	DS_Locked = 4	UMETA(DisplayName = "Locked")
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -31,11 +32,6 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	DECLARE_EVENT(FDoorInteractionCompoenet, FOpened)
-	FOpened& OnOpen() { return OpenedEvent; }
-
-	FOpened OpenedEvent;
-
 	void DebugDraw();
 	static void OnDebugToggled(IConsoleVariable* Var);
 
@@ -45,6 +41,12 @@ protected:
 
 	//called internally when door has finished opening
 	void OnDoorOpen();
+
+	//called internally when door has finished closing
+	void OnDoorClose();
+
+	// called internally to set the desired rotation
+	void SetFinalRotation(const APawn* PlayerPawn);
 
 	UPROPERTY(EditAnywhere)
 	FRotator DesiredRotation = FRotator::ZeroRotator;
