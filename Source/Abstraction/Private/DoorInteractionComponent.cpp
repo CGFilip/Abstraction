@@ -37,7 +37,7 @@ void UDoorInteractionComponent::BeginPlay()
 	Super::BeginPlay();
 
 	StartRotation = GetOwner()->GetActorRotation();
-	//FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
+	FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
 
 	CurrentRotationTime = 0;
 	OwnerStartingForwardVector = GetOwner()->GetActorRightVector(); // Should be Forward, but the mesh is turned
