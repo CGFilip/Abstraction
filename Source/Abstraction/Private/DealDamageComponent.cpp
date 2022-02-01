@@ -10,7 +10,7 @@ UDealDamageComponent::UDealDamageComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &UDealDamageComponent::OnOverlapBegin);
@@ -24,6 +24,23 @@ void UDealDamageComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+	
+}
+
+void UDealDamageComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (IsActive())
+	{
+		AAbstractionPlayerCharacter* PlayerCharacter = Cast<AAbstractionPlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
+		if (TriggerCapsule->IsOverlappingActor(PlayerCharacter))
+		{
+			TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
+			FDamageEvent DamageEvent(ValidDamageTypeClass);
+			PlayerCharacter->TakeDamage(BaseDamage, DamageEvent, nullptr, GetOwner());
+		}
+	}
 	
 }
 
