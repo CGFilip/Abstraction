@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "ObjectiveWorldSubsystem.h"
 #include "DrawDebugHelpers.h"
+#include "Components/TextRenderComponent.h"
 
 constexpr float FLT_METERS(float meters) { return meters * 100.0f; }
 
@@ -30,28 +31,12 @@ UDoorInteractionComponent::UDoorInteractionComponent()
 	CVarToggleDebugDoor.AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate::CreateStatic(&UDoorInteractionComponent::OnDebugToggled));
 }
 
-
-// Called when the game starts
-void UDoorInteractionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	StartRotation = GetOwner()->GetActorRotation();
-	FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
-
-	CurrentRotationTime = 0;
-	OwnerStartingForwardVector = GetOwner()->GetActorRightVector(); // Should be Forward, but the mesh is turned
-
-
-}
-
-
 // Called every frame
 void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (DoorState == EDoorState::DS_Closed)
+	/*if (DoorState == EDoorState::DS_Closed)
 	{
 		if (TriggerBox && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
 		{
@@ -66,7 +51,9 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			}
 		}
 	}
-	else if (DoorState == EDoorState::DS_Opening)
+	else 
+	*/	
+	if (DoorState == EDoorState::DS_Opening)
 	{
 		CurrentRotationTime += DeltaTime;
 		const float TimeRatio = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
@@ -152,6 +139,79 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	DebugDraw();
 }
 
+
+void UDoorInteractionComponent::OpenDoor()
+{
+	if (IsOpen() || DoorState == EDoorState::DS_Opening)
+	{
+		return;
+	}
+
+	DoorState = EDoorState::DS_Opening;
+	CurrentRotationTime = 0.0f;
+}
+
+
+// Called when the game starts
+void UDoorInteractionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	StartRotation = GetOwner()->GetActorRotation();
+	FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
+
+	CurrentRotationTime = 0;
+
+	TextRenderComponent = GetOwner()->FindComponentByClass<UTextRenderComponent>();
+}
+
+
+void UDoorInteractionComponent::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UE_LOG(LogTemp, Warning, TEXT("UDoorInteractionComponent::OnOverlapBegin"));
+	//we already have somebody interacting, currently we don't support multiple interactions
+	if (InteractingActor)
+	{
+		return;
+	}
+
+	//for now we will get that component and set visible
+	if (OtherActor->ActorHasTag("Player"))
+	{
+		InteractingActor = OtherActor;
+		if (TextRenderComponent)
+		{
+			TextRenderComponent->SetText(InteractionPrompt);
+			TextRenderComponent->SetVisibility(true);
+		}
+	}
+}
+
+void UDoorInteractionComponent::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	UE_LOG(LogTemp, Warning, TEXT("UDoorInteractionComponent::OnOverlapEnd"));
+	if (OtherActor == InteractingActor)
+	{
+		InteractingActor = nullptr;
+		if (TextRenderComponent)
+		{
+			TextRenderComponent->SetVisibility(false);
+		}
+	}
+}
+
+
+
+void UDoorInteractionComponent::InteractionStart()
+{
+	Super::InteractionStart();
+	//ideally we would make sure this is allowed
+	if (InteractingActor)
+	{
+		OpenDoor();
+	}
+}
+
 void UDoorInteractionComponent::OnDoorOpen()
 {
 	DoorState = EDoorState::DS_Open;
@@ -163,6 +223,7 @@ void UDoorInteractionComponent::OnDoorOpen()
 	}
 
 	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TEXT("DoorOpened"));
+	InteractionSuccess.Broadcast();
 }
 
 void UDoorInteractionComponent::OnDebugToggled(IConsoleVariable* Var)

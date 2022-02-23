@@ -2,7 +2,12 @@
 
 
 #include "AbstractionPlayerCharacter.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/DamageType.h"
 #include "HealthComponent.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Components/InputComponent.h"
+#include "DamageHandlerComponent.h"
 
 // Sets default values
 AAbstractionPlayerCharacter::AAbstractionPlayerCharacter()
@@ -11,6 +16,9 @@ AAbstractionPlayerCharacter::AAbstractionPlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	DamageHandlerComponent = CreateDefaultSubobject<UDamageHandlerComponent>(TEXT("DamageHandlerComponent"));
+	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
+	ParticleSystemComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -31,12 +39,25 @@ void AAbstractionPlayerCharacter::Tick(float DeltaTime)
 void AAbstractionPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	FInputActionBinding* Binding;
+	//these functions fire off events
+	//interaction component listens to them
+	Binding = &PlayerInputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &AAbstractionPlayerCharacter::StartInteraction);
+	Binding = &PlayerInputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &AAbstractionPlayerCharacter::StopInteraction);
 
 }
 
 void AAbstractionPlayerCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
 	OnDeath(true);
+}
+
+void AAbstractionPlayerCharacter::SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval)
+{
+	if (DamageHandlerComponent)
+	{
+		DamageHandlerComponent->TakeFireDamage(BaseDamage, DamageTotalTime, TakeDamageInterval);
+	}
 }
 
 void AAbstractionPlayerCharacter::OnDeath(bool IsFellOut)
@@ -61,4 +82,14 @@ float AAbstractionPlayerCharacter::TakeDamage(float DamageAmount, struct FDamage
 		}
 	}
 	return Damage;
+}
+
+void AAbstractionPlayerCharacter::StartInteraction()
+{
+	OnInteractionStart.Broadcast();
+}
+
+void AAbstractionPlayerCharacter::StopInteraction()
+{
+	OnInteractionCancel.Broadcast();
 }

@@ -5,10 +5,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Curves/CurveFloat.h"
+#include "InteractionComponent.h"
 #include "DoorInteractionComponent.generated.h"
 
 class ATriggerBox;
 class IConsoleVariable;
+class UTextRenderComponent;
 
 UENUM()
 enum class EDoorState
@@ -20,7 +22,7 @@ enum class EDoorState
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ABSTRACTION_API UDoorInteractionComponent : public UActorComponent
+class ABSTRACTION_API UDoorInteractionComponent : public UInteractionComponent
 {
 	GENERATED_BODY()
 
@@ -30,21 +32,27 @@ public:
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	DECLARE_EVENT(FDoorInteractionCompoenet, FOpened)
-	FOpened& OnOpen() { return OpenedEvent; }
-
-	FOpened OpenedEvent;
-
-	void DebugDraw();
 	static void OnDebugToggled(IConsoleVariable* Var);
+
+	//request to open the door
+	UFUNCTION(BlueprintCallable)
+	void OpenDoor();
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+
+	void InteractionStart() override;
 
 	//called internally when door has finished opening
 	void OnDoorOpen();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsOpen() { return DoorState == EDoorState::DS_Open; }
+
+	void DebugDraw();
 
 	UPROPERTY(EditAnywhere)
 	FRotator DesiredRotation = FRotator::ZeroRotator;
@@ -58,17 +66,13 @@ protected:
 	float CurrentRotationTime = 0.0f;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerBox* TriggerBox;
-
-	UPROPERTY(EditAnywhere)
 	FRuntimeFloatCurve OpenCurve;
 
-	bool DidDoorOpen = false;
-	bool DidDoorClose = false;
-	bool IsRotationSet = false;
-
-	FVector OwnerStartingForwardVector;
+	//FVector OwnerStartingForwardVector;
 
 	UPROPERTY(BlueprintReadOnly)
 	EDoorState DoorState;
+
+	UPROPERTY()
+	UTextRenderComponent* TextRenderComponent = nullptr;
 };

@@ -34,11 +34,9 @@ void UDealDamageComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	if (IsActive())
 	{
 		AAbstractionPlayerCharacter* PlayerCharacter = Cast<AAbstractionPlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
-		if (TriggerCapsule->IsOverlappingActor(PlayerCharacter))
+		if (PlayerCharacter && TriggerCapsule->IsOverlappingActor(PlayerCharacter))
 		{
-			TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
-			FDamageEvent DamageEvent(ValidDamageTypeClass);
-			PlayerCharacter->TakeDamage(BaseDamage, DamageEvent, nullptr, GetOwner());
+			PlayerCharacter->SetOnFire(BaseDamage, DamageTotalTime, TakeDamageInterval);
 		}
 	}
 	
@@ -61,9 +59,7 @@ void UDealDamageComponent::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, A
 	AAbstractionPlayerCharacter* PlayerCharacter = Cast<AAbstractionPlayerCharacter>(OtherActor);
 	if (PlayerCharacter)
 	{
-		TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
-		FDamageEvent DamageEvent(ValidDamageTypeClass);
-		PlayerCharacter->TakeDamage(BaseDamage, DamageEvent, nullptr, GetOwner());
+		PlayerCharacter->SetOnFire(BaseDamage, DamageTotalTime, TakeDamageInterval);
 	}
 }
 

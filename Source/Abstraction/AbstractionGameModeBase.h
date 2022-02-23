@@ -16,8 +16,11 @@ class ABSTRACTION_API AAbstractionGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
-	void StartPlay() override;
+	AAbstractionGameModeBase() {}
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> ObjectiveWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> ObjectivesCompleteWidgetClass;
 };
