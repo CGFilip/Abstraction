@@ -43,6 +43,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Abstraction")
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
+	UFUNCTION(BlueprintCallable)
+	void HandleItemCollected();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ItemCollected();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int ItemsCollected = 0;
+
+
 	FInteractionStart OnInteractionStart;
 	FInteractionCancel OnInteractionCancel;
 
@@ -72,4 +82,15 @@ protected:
 	float TimeRestartAfterDeath = 2.0f;
 
 	FTimerHandle RestartLevelTimerHandle;
+
+	APlayerController* PC;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TSubclassOf<UCameraShakeBase> CamShake;
+
+	// Force Feedback values
+	UPROPERTY(EditAnywhere, Category="ForceFeedback")
+	float ForceFeedbackIntensity = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
+	float ForceFeedbackDuration = 1.0f;
 };
