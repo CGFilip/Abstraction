@@ -36,10 +36,11 @@ protected:
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void InteractionStart();
+	virtual void InteractionRequested() {};
 
 	UPROPERTY(EditAnywhere)
 	FText InteractionPrompt;
@@ -48,4 +49,5 @@ protected:
 	UCapsuleComponent* TriggerCapsule = nullptr;
 
 	AActor* InteractingActor = nullptr;
+	FDelegateHandle InteractionBinding;
 };

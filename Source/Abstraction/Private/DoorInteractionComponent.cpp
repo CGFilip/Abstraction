@@ -8,7 +8,9 @@
 #include "Engine/World.h"
 #include "ObjectiveWorldSubsystem.h"
 #include "DrawDebugHelpers.h"
+#include "Components/AudioComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "AbstractionPlayerCharacter.h"
 
 constexpr float FLT_METERS(float meters) { return meters * 100.0f; }
 
@@ -28,7 +30,7 @@ UDoorInteractionComponent::UDoorInteractionComponent()
 
 	DoorState = EDoorState::DS_Closed;
 
-	CVarToggleDebugDoor.AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate::CreateStatic(&UDoorInteractionComponent::OnDebugToggled));
+	CVarToggleDebugDoor.AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate::CreateStatic(&UDoorInteractionComponent::OnDebugToggled)); 
 }
 
 // Called every frame
@@ -147,6 +149,12 @@ void UDoorInteractionComponent::OpenDoor()
 		return;
 	}
 
+	if (AudioComponent)
+	{
+		AudioComponent->Play();
+	}
+
+
 	DoorState = EDoorState::DS_Opening;
 	CurrentRotationTime = 0.0f;
 }
@@ -161,6 +169,13 @@ void UDoorInteractionComponent::BeginPlay()
 	FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
 
 	CurrentRotationTime = 0;
+
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+	//check(AudioComponent);
+	if (!AudioComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UDoorInteractionComponent::BeginPlay() Missing Audio Component"));
+	}
 
 	TextRenderComponent = GetOwner()->FindComponentByClass<UTextRenderComponent>();
 }
@@ -202,15 +217,29 @@ void UDoorInteractionComponent::OnOverlapEnd(UPrimitiveComponent* OverlappedComp
 
 
 
-void UDoorInteractionComponent::InteractionStart()
+void UDoorInteractionComponent::InteractionRequested()
 {
-	Super::InteractionStart();
 	//ideally we would make sure this is allowed
 	if (InteractingActor)
 	{
-		OpenDoor();
+		SetActive(false);
+		if (TextRenderComponent)
+		{
+			TextRenderComponent->SetText(InteractionPrompt);
+			TextRenderComponent->SetVisibility(false);
+		}
+
+		AAbstractionPlayerCharacter* APC = Cast<AAbstractionPlayerCharacter>(InteractingActor);
+		if (APC)
+		{
+			APC->DoorOpenInteractionStarted(GetOwner());
+		}
+
+		//this will be called from the owner to be in sync with animation
+		//OpenDoor();
 	}
 }
+
 
 void UDoorInteractionComponent::OnDoorOpen()
 {

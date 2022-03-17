@@ -6,6 +6,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "InteractableDoor.generated.h"
 
+class UAudioComponent;
 class UDoorInteractionComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDoorOpen);
@@ -33,4 +34,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, NoClear)
 	UDoorInteractionComponent* DoorInteractionComponent;
+
+	UPROPERTY(EditAnywhere)
+	UAudioComponent* AudioComponent;
 };

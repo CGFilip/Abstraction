@@ -10,8 +10,9 @@ class UDamageHandlerComponent;
 class UHealthComponent;
 class UParticleSystemComponent;
 
-DECLARE_MULTICAST_DELEGATE(FInteractionStart);
-DECLARE_MULTICAST_DELEGATE(FInteractionCancel);
+//these are input bindings
+DECLARE_MULTICAST_DELEGATE(FInteractionStartRequest);
+DECLARE_MULTICAST_DELEGATE(FInteractionCancelRequest);
 
 UCLASS()
 class ABSTRACTION_API AAbstractionPlayerCharacter : public ACharacter
@@ -43,8 +44,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Abstraction")
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
-	FInteractionStart OnInteractionStart;
-	FInteractionCancel OnInteractionCancel;
+	//bindings, a hack atm as the interactble components in the game world get the player and sign themselves up to these events
+	//to know when the player has pressed the input binding for interacting
+	FInteractionStartRequest OnInteractionStartRequested;
+	FInteractionCancelRequest OnInteractionCancelRequested;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoorOpenInteractionStarted(AActor* InteractableActor);
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystemComponent* ParticleSystemComponent;
@@ -59,8 +65,8 @@ protected:
 	void OnDeathTimerFinished();
 
 	//Input Bindings
-	void StartInteraction();
-	void StopInteraction();
+	void InteractionStartRequested();
+	void InteractionCancelRequested();
 
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;

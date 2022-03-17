@@ -3,6 +3,7 @@
 
 #include "InteractableDoor.h"
 #include "DoorInteractionComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/CapsuleComponent.h"
 
 AInteractableDoor::AInteractableDoor()
@@ -12,12 +13,16 @@ AInteractableDoor::AInteractableDoor()
 	{
 		DoorInteractionComponent->GetTriggerCapsule()->SetupAttachment(RootComponent);
 	}
+
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 }
 
 void AInteractableDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	DoorInteractionComponent->InteractionSuccess.AddDynamic(this, &AInteractableDoor::OnInteractionSuccess);
+
+	AudioComponent->Stop();
 }
 
 void AInteractableDoor::OpenDoor()

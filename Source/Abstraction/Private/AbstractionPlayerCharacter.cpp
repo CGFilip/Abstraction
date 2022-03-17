@@ -42,8 +42,8 @@ void AAbstractionPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Pla
 	FInputActionBinding* Binding;
 	//these functions fire off events
 	//interaction component listens to them
-	Binding = &PlayerInputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &AAbstractionPlayerCharacter::StartInteraction);
-	Binding = &PlayerInputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &AAbstractionPlayerCharacter::StopInteraction);
+	Binding = &PlayerInputComponent->BindAction(FName("InteractionStart"), IE_Pressed, this, &AAbstractionPlayerCharacter::InteractionStartRequested);
+	Binding = &PlayerInputComponent->BindAction(FName("InteractionCancel"), IE_Pressed, this, &AAbstractionPlayerCharacter::InteractionCancelRequested);
 
 }
 
@@ -117,12 +117,12 @@ float AAbstractionPlayerCharacter::TakeDamage(float DamageAmount, struct FDamage
 	return Damage;
 }
 
-void AAbstractionPlayerCharacter::StartInteraction()
+void AAbstractionPlayerCharacter::InteractionStartRequested()
 {
-	OnInteractionStart.Broadcast();
+	OnInteractionStartRequested.Broadcast();
 }
 
-void AAbstractionPlayerCharacter::StopInteraction()
+void AAbstractionPlayerCharacter::InteractionCancelRequested()
 {
-	OnInteractionCancel.Broadcast();
+	OnInteractionCancelRequested.Broadcast();
 }

@@ -10,6 +10,7 @@
 
 class ATriggerBox;
 class IConsoleVariable;
+class UAudioComponent;
 class UTextRenderComponent;
 
 UENUM()
@@ -44,7 +45,7 @@ protected:
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 
-	void InteractionStart() override;
+	void InteractionRequested() override;
 
 	//called internally when door has finished opening
 	void OnDoorOpen();
@@ -73,6 +74,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	EDoorState DoorState;
 
+	UPROPERTY()
+	UAudioComponent* AudioComponent = nullptr;
 	UPROPERTY()
 	UTextRenderComponent* TextRenderComponent = nullptr;
 };

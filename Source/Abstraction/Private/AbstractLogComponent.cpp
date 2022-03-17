@@ -10,7 +10,7 @@ UAbstractLogComponent::UAbstractLogComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	UE_LOG(LogTemp, Error, TEXT("Abstract Log Component Created"));
+	//UE_LOG(LogTemp, Error, TEXT("Abstract Log Component Created"));
 
 	// ...
 }
@@ -22,7 +22,7 @@ void UAbstractLogComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	UE_LOG(LogTemp, Warning, TEXT("UAbstractLogComponent::BeginPlay %s"), *DataString);
+	//UE_LOG(LogTemp, Warning, TEXT("UAbstractLogComponent::BeginPlay %s"), *DataString);
 }
 
 

@@ -35,11 +35,20 @@ void UInteractionComponent::BeginPlay()
 	if (Player)
 	{
 		//bind to player input
-		Player->OnInteractionStart.AddUObject(this, &UInteractionComponent::InteractionStart);
-	}
-	
+		InteractionBinding = Player->OnInteractionStartRequested.AddUObject(this, &UInteractionComponent::InteractionRequested);
+	}	
 }
 
+void UInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	AAbstractionPlayerCharacter* Player = Cast<AAbstractionPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	if (Player)
+	{
+		Player->OnInteractionStartRequested.Remove(InteractionBinding);
+	}
+}
 
 // Called every frame
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -65,9 +74,4 @@ void UInteractionComponent::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
 void UInteractionComponent::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	InteractingActor = nullptr;
-}
-
-void UInteractionComponent::InteractionStart()
-{
-
 }
